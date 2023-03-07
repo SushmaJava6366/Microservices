@@ -1,0 +1,44 @@
+server:
+  port: 9191
+  
+  
+spring:
+  application:
+    name: API-GATEWAY
+    cloud:
+    gateway:
+      routes:
+        - id: USER-SERVICE
+          uri: http:localhost:9002
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: USER-SERVICE
+                fallbackuri: forward:/userServiceFallBack
+        - id: CONTACT-SERVICE
+          uri: http:localhost:9001
+          predicates:
+            - Path=/contacts/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: CONTACT-SERVICE
+                fallbackuri: forward:/contactServiceFallBack
+                
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 4000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+
